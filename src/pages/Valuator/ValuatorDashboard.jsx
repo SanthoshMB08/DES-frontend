@@ -127,6 +127,9 @@ export default function ValuatorDashboard() {
     const papers = bundles.flatMap((bundle) => bundle.scripts);
     const totalScriptsEvaluated = papers.filter((paper) => paper.status !== "PENDING").length;
     const pendingScripts = papers.filter((paper) => paper.status === "PENDING").length;
+    const orderedBundles = [...bundles].sort(
+        (first, second) => Number(first.status !== "PENDING") - Number(second.status !== "PENDING")
+    );
 
     return (
         // CONTAINER
@@ -220,7 +223,7 @@ export default function ValuatorDashboard() {
                         {!loading && !loadError && bundles.length === 0 && (
                             <p className="border border-gray-300 p-4 text-center font-lexend text-sm text-gray-500">No papers assigned yet.</p>
                         )}
-                        {!loading && bundles.map((bundle) => {
+                        {!loading && orderedBundles.map((bundle) => {
                             const completedCount = bundle.scripts.filter((script) => script.status !== "PENDING").length;
                             const pendingCount = bundle.scripts.length - completedCount;
                             const alreadySubmitted = bundle.status !== "PENDING";
@@ -244,7 +247,6 @@ export default function ValuatorDashboard() {
                                             <thead>
                                                 <tr className="bg-orange-100 text-[0.9em] font-lexend text-yellow-950 font-bold uppercase tracking-wider text-center">
                                                     <th className="border border-gray-300 p-2.5 w-20">sl no</th>
-                                                    <th className="border border-gray-300 p-2.5">paper / booklet id</th>
                                                     <th className="border border-gray-300 p-2.5">qp-code</th>
                                                     <th className="border border-gray-300 p-2.5 w-32">status</th>
                                                     <th className="border border-gray-300 p-2.5 w-44">action</th>
@@ -254,7 +256,6 @@ export default function ValuatorDashboard() {
                                                 {bundle.scripts.map((paper, index) => (
                                                     <tr key={paper.id} className="text-[0.95em] font-lexend font-medium text-center h-10 hover:bg-blue-50">
                                                         <td className="border border-gray-300 p-2">{index + 1}</td>
-                                                        <td className="border border-gray-300 p-2 text-[1.1em] font-mono text-left px-4">{paper.answerBookletId}</td>
                                                         <td className="border border-gray-300 p-2">{paper.qpCode}</td>
                                                         <td className="border border-gray-300 p-2">
                                                             <span className={`inline-block min-w-24 font-bold py-1 border rounded-[0.3em] text-[10px] ${paper.status === "PENDING" ? "bg-yellow-100 text-yellow-700 border-yellow-400" : "bg-green-200 text-green-800 border-green-400"}`}>

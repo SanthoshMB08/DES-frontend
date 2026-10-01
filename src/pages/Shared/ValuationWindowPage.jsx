@@ -675,6 +675,7 @@ export default function ValuationWindowPage() {
                 bookletId={bookletId}
                 qpCode={qpCode}
                 mode={reviewMode ? "REVIEW" : "VALUATION"}
+                showBookletId={reviewMode}
                 currentTool={currentTool}
                 onToolChange={(tool) => {
                     handleTextDeselect();
@@ -701,7 +702,7 @@ export default function ValuationWindowPage() {
                     {/* Auto-load status bar (no manual upload - the scanned copy loads automatically) */}
                     <div className="bg-[#fafafa] border-b border-[#e4e8ee] px-4 py-2 shrink-0">
                         <div className="text-center text-[11px] font-medium text-gray-500">
-                            {fileName || bookletId}
+                            {reviewMode ? (fileName || bookletId) : "Answer sheet"}
                         </div>
                         {pdfReady && !loadingPdf && !pdfError && (
                             <div className="text-center text-[10px] text-gray-400 mt-1">

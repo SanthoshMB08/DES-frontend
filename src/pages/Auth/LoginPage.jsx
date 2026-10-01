@@ -20,7 +20,9 @@ export default function LoginPage() {
     // LOGIN HANDLER
     const handleLogin = async () => {
         if (isLoading) return; // Prevent multiple clicks
-        if (!uid || !password) {
+        const normalizedUid = uid.trim();
+        const normalizedPassword = password.trim();
+        if (!normalizedUid || !normalizedPassword) {
             setError("Please enter both UID and password.");
             return;
         }
@@ -29,7 +31,7 @@ export default function LoginPage() {
         setError("");
 
         try {
-            const response = await login(uid, password);
+            const response = await login(normalizedUid, normalizedPassword);
             navigate(response.forcePasswordChange ? "/change-password" : routeForRoles(response.roles));
         } catch (err) {
             setError(err.message || "Login failed. Please try again.");

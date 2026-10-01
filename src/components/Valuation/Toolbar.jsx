@@ -16,14 +16,17 @@ export default function Toolbar({
     seconds,
     onExit,
     isExiting = false,
+    showBookletId = true,
 }) {
     return (
         <div className="bg-white border-b border-[#d0d4dc] flex items-center gap-2 p-2 shrink-0 shadow-sm z-10 flex-wrap">
             {/* Booklet/QP info */}
             <div className="flex items-center gap-2 shrink-0">
-                <div className="bg-gradient-to-r from-[#f0e8f8] to-[#e8d8f4] border border-[#c8aee0] rounded px-3 py-1 font-bold text-[#4a2a7a] tracking-wide whitespace-nowrap">
-                    BOOKLET ID: <span className="font-mono text-sm ml-1 font-black">{bookletId}</span>
-                </div>
+                {showBookletId && (
+                    <div className="bg-gradient-to-r from-[#f0e8f8] to-[#e8d8f4] border border-[#c8aee0] rounded px-3 py-1 font-bold text-[#4a2a7a] tracking-wide whitespace-nowrap">
+                        BOOKLET ID: <span className="font-mono text-sm ml-1 font-black">{bookletId}</span>
+                    </div>
+                )}
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-300 rounded px-3 py-1 font-bold text-blue-900 tracking-wide whitespace-nowrap">
                     QP CODE: <span className="font-mono text-sm ml-1 font-black">{qpCode}</span>
                 </div>
