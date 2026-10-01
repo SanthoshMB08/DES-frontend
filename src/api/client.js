@@ -45,13 +45,11 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
             headers,
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
-    } catch (networkError) {
-        throw new Error(
-            `Could not reach the backend at ${API_BASE_URL}. Is it running? (${networkError.message})`
-        );
+    } catch {
+        throw new Error("Could not connect to the server. Please try again.");
     }
 
-    if (response.status === 401) {
+    if (response.status === 401 && auth) {
         clearSession();
         throw new Error("Session expired. Please log in again.");
     }
@@ -74,7 +72,7 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 
 export const api = {
     get: (path) => request(path, { method: "GET" }),
-    post: (path, body) => request(path, { method: "POST", body }),
+    post: (path, body, { auth = true } = {}) => request(path, { method: "POST", body, auth }),
     put: (path, body) => request(path, { method: "PUT", body }),
     del: (path) => request(path, { method: "DELETE" }),
 };
@@ -88,8 +86,8 @@ export async function getBlob(path) {
     let response;
     try {
         response = await fetch(`${API_BASE_URL}${path}`, { method: "GET", headers });
-    } catch (networkError) {
-        throw new Error(`Could not reach the backend at ${API_BASE_URL}. Is it running? (${networkError.message})`);
+    } catch {
+        throw new Error("Could not connect to the server. Please try again.");
     }
     if (response.status === 401) {
         clearSession();
@@ -114,8 +112,8 @@ export async function uploadFile(path, file, method = "POST") {
     let response;
     try {
         response = await fetch(`${API_BASE_URL}${path}`, { method, headers, body: formData });
-    } catch (networkError) {
-        throw new Error(`Could not reach the backend at ${API_BASE_URL}. Is it running? (${networkError.message})`);
+    } catch {
+        throw new Error("Could not connect to the server. Please try again.");
     }
     if (response.status === 401) {
         clearSession();

@@ -21,7 +21,7 @@ export function routeForRoles(roles = []) {
 }
 
 export async function login(username, password) {
-    const response = await api.post("/api/auth/login", { username, password });
+    const response = await api.post("/api/auth/login", { username, password }, { auth: false });
     // LoginResponse: { tokenType, accessToken, expiresInSeconds, username, roles, forcePasswordChange }
     saveSession({
         accessToken: response.accessToken,
