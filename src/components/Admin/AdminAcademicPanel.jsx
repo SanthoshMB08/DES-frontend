@@ -89,7 +89,6 @@ export default function AdminAcademicPanel() {
     const [curriculumSubjects, setCurriculumSubjects] = useState([]);
     const [subjectsLoading, setSubjectsLoading] = useState(false);
     const sectionMaximum = subjectForm.markingScheme.reduce((total, section) => total + (Number(section.maxMarks) || 0), 0);
-    const markingSchemeMatchesSubjectMax = Math.abs(sectionMaximum - Number(subjectForm.maxMarks)) < 0.000001;
     const addMarkingSection = () => setSubjectForm((current) => ({
         ...current,
         markingScheme: [...current.markingScheme, {
@@ -132,10 +131,6 @@ export default function AdminAcademicPanel() {
     };
     const handleAddAcademicSubject = async (e) => {
         e.preventDefault(); setError("");
-        if (subjectForm.markingScheme.length > 0 && !markingSchemeMatchesSubjectMax) {
-            setError("Section maximum marks must add up to the subject maximum marks.");
-            return;
-        }
         setSubjectBusy(true);
         try {
             const selectedCurriculum = curricula.find((curriculum) => curriculum.id === subjectForm.curriculumId);
@@ -147,7 +142,9 @@ export default function AdminAcademicPanel() {
                 subjectCode: subjectForm.subjectCode,
                 subjectName: subjectForm.subjectName,
                 qpCode: subjectForm.qpCode,
-                maxMarks: Number(subjectForm.maxMarks) || 100,
+                maxMarks: subjectForm.markingScheme.length > 0
+                    ? sectionMaximum
+                    : Number(subjectForm.maxMarks) || 100,
                 credits: subjectForm.credits ? Number(subjectForm.credits) : null,
                 markingScheme: subjectForm.markingScheme.map((section) => ({
                     name: section.name.trim(),
@@ -292,7 +289,19 @@ export default function AdminAcademicPanel() {
                     <input required placeholder="Subject code" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.subjectCode} onChange={(e) => setSubjectForm({ ...subjectForm, subjectCode: e.target.value })} />
                     <input required placeholder="Subject name" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.subjectName} onChange={(e) => setSubjectForm({ ...subjectForm, subjectName: e.target.value })} />
                     <input required placeholder="QP code" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.qpCode} onChange={(e) => setSubjectForm({ ...subjectForm, qpCode: e.target.value })} />
-                    <input type="number" min="1" step="0.01" placeholder="Max marks" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.maxMarks} onChange={(e) => setSubjectForm({ ...subjectForm, maxMarks: e.target.value })} />
+                    <label className="text-xs text-gray-600">
+                        {subjectForm.markingScheme.length > 0 ? "Subject maximum (sum of sections)" : "Subject maximum marks"}
+                        <input
+                            type="number"
+                            min="1"
+                            step="0.01"
+                            placeholder="Max marks"
+                            className="block w-full font-lexend text-sm border p-2.5 rounded-sm outline-none disabled:bg-gray-100"
+                            value={subjectForm.markingScheme.length > 0 ? sectionMaximum : subjectForm.maxMarks}
+                            onChange={(e) => setSubjectForm({ ...subjectForm, maxMarks: e.target.value })}
+                            disabled={subjectForm.markingScheme.length > 0}
+                        />
+                    </label>
                     <input type="number" min="0" step="0.1" placeholder="Credits (optional)" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.credits} onChange={(e) => setSubjectForm({ ...subjectForm, credits: e.target.value })} />
                     <div className="col-span-full border rounded p-3 flex flex-col gap-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -331,8 +340,8 @@ export default function AdminAcademicPanel() {
                             );
                         })}
                         {subjectForm.markingScheme.length > 0 && (
-                            <p className={`text-xs font-semibold ${markingSchemeMatchesSubjectMax ? "text-green-700" : "text-red-600"}`}>
-                                Section marks total: {sectionMaximum} / subject maximum: {Number(subjectForm.maxMarks) || 0}
+                            <p className="text-xs font-semibold text-green-700">
+                                Subject maximum is calculated automatically: {sectionMaximum} marks across configured sections.
                             </p>
                         )}
                     </div>
