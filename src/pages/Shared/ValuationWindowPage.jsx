@@ -30,6 +30,34 @@ const DEFAULT_QUESTIONS = [
     { qno: "08", max: 5, obt: "NA" },
 ];
 
+const createQuestionsForScript = (markingScheme, marksJson) => {
+    let savedQuestions = [];
+    try {
+        const parsed = JSON.parse(marksJson || "[]");
+        if (Array.isArray(parsed)) savedQuestions = parsed;
+    } catch {
+        // Keep the default score sheet when saved marks are malformed.
+    }
+    if (!Array.isArray(markingScheme) || markingScheme.length === 0) {
+        return savedQuestions.length > 0 ? savedQuestions : DEFAULT_QUESTIONS;
+    }
+    const savedByNumber = new Map(savedQuestions.map((question) => [question.qno, question]));
+    let number = 0;
+    return markingScheme.flatMap((section) =>
+        Array.from({ length: section.questionCount }, () => {
+            number += 1;
+            const qno = String(number).padStart(2, "0");
+            const saved = savedByNumber.get(qno);
+            return {
+                qno,
+                max: Number(section.marksPerQuestion),
+                obt: saved?.obt ?? "NA",
+                section: section.name,
+            };
+        })
+    );
+};
+
 export default function ValuationWindowPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -73,6 +101,7 @@ export default function ValuationWindowPage() {
 
     // Score sheet questions state
     const [questions, setQuestions] = useState(DEFAULT_QUESTIONS);
+    const [markingScheme, setMarkingScheme] = useState([]);
     const [selectedQuestion, setSelectedQuestion] = useState(DEFAULT_QUESTIONS[0]);
     const [isExporting, setIsExporting] = useState(false);
 
@@ -93,17 +122,9 @@ export default function ValuationWindowPage() {
             setScriptId(script.id);
             setBookletId(script.answerBookletId);
             setQpCode(script.qpCode || "");
-            let loadedQuestions = DEFAULT_QUESTIONS;
-            if (script.marksJson) {
-                try {
-                    const savedQuestions = JSON.parse(script.marksJson);
-                    if (Array.isArray(savedQuestions) && savedQuestions.length > 0) {
-                        loadedQuestions = savedQuestions;
-                    }
-                } catch {
-                    // Ignore malformed saved marks and keep the default score sheet.
-                }
-            }
+            const scheme = script.markingScheme || [];
+            setMarkingScheme(scheme);
+            const loadedQuestions = createQuestionsForScript(scheme, script.marksJson);
             setQuestions(loadedQuestions);
             setSelectedQuestion(loadedQuestions.find((question) => question.obt === "NA") || null);
             // Auto-load the scanned PDF the scanner already uploaded - no manual upload needed.
@@ -187,11 +208,42 @@ export default function ValuationWindowPage() {
     };
 
     // 4. Totals calculations
-    const maxTotal = questions.reduce((s, q) => s + q.max, 0);
-    const obtainedTotal = questions.reduce(
-        (s, q) => (q.obt !== "NA" && q.obt !== "BLK" ? s + (parseFloat(q.obt) || 0) : s),
-        0
-    );
+    const maxTotal = markingScheme.length > 0
+        ? markingScheme.reduce((sum, section) => sum + Number(section.maxMarks), 0)
+        : questions.reduce((s, q) => s + q.max, 0);
+    const consideredQuestionNumbers = new Set();
+    const sectionTotals = markingScheme.map((section) => {
+        const sectionQuestions = questions
+            .map((question, index) => ({ question, index }))
+            .filter(({ question }) => question.section === section.name)
+            .sort((first, second) => {
+                const firstObtained = Number.parseFloat(first.question.obt);
+                const secondObtained = Number.parseFloat(second.question.obt);
+                const firstScore = Number.isFinite(firstObtained) ? firstObtained : 0;
+                const secondScore = Number.isFinite(secondObtained) ? secondObtained : 0;
+                return secondScore - firstScore || first.index - second.index;
+            });
+        const consideredCount = Math.min(
+            sectionQuestions.length,
+            Math.ceil(Number(section.maxMarks) / Number(section.marksPerQuestion))
+        );
+        const considered = sectionQuestions.slice(0, consideredCount);
+        considered.forEach(({ question }) => consideredQuestionNumbers.add(question.qno));
+        const total = considered.reduce((sum, { question }) => {
+            const obtained = Number.parseFloat(question.obt);
+            return sum + (Number.isFinite(obtained) ? obtained : 0);
+        }, 0);
+        return { name: section.name, total: Math.min(total, Number(section.maxMarks)) };
+    });
+    const obtainedTotal = markingScheme.length > 0
+        ? sectionTotals.reduce((sum, section) => sum + section.total, 0)
+        : questions.reduce(
+            (sum, question) =>
+                question.obt !== "NA" && question.obt !== "BLK"
+                    ? sum + (Number.parseFloat(question.obt) || 0)
+                    : sum,
+            0
+        );
     const standardHasMarks = questions.some((q) => q.obt !== "NA" && q.obt !== "BLK");
 
     // 5. Canvas Click handlers
@@ -438,16 +490,10 @@ export default function ValuationWindowPage() {
         setScriptId(next.id);
         setBookletId(next.answerBookletId);
         setQpCode(next.qpCode || "");
-        let nextQuestions = DEFAULT_QUESTIONS;
-        try {
-            const saved = JSON.parse(next.marksJson || "[]");
-            if (Array.isArray(saved) && saved.length) nextQuestions = saved;
-        } catch {
-            // Ignore malformed saved marks and use the default score sheet.
-        }
-        setQuestions(() => {
-            return nextQuestions;
-        });
+        const nextScheme = next.markingScheme || [];
+        setMarkingScheme(nextScheme);
+        const nextQuestions = createQuestionsForScript(nextScheme, next.marksJson);
+        setQuestions(nextQuestions);
         setSelectedQuestion(nextQuestions.find((question) => question.obt === "NA") || null);
         await loadScriptFile(next.id, next.scannedFileName);
     };
@@ -482,9 +528,7 @@ export default function ValuationWindowPage() {
         try {
             if (reviewMode) {
                 if (!scriptId) throw new Error("No script is associated with this review.");
-                const totalMarks = questions.reduce(
-                    (sum, q) => sum + (Number.isFinite(parseFloat(q.obt)) ? parseFloat(q.obt) : 0), 0
-                );
+                const totalMarks = obtainedTotal;
                 await reviewScript(scriptId, {
                     approved: true,
                     comments: "Reviewed and marks confirmed.",
@@ -637,10 +681,7 @@ export default function ValuationWindowPage() {
 
                 const finalQuestions = questions.map((q) => q.obt === "NA" ? { ...q, obt: "0" } : q);
                 setQuestions(finalQuestions);
-                const totalMarks = finalQuestions.reduce(
-                    (sum, q) => sum + (Number.isFinite(parseFloat(q.obt)) ? parseFloat(q.obt) : 0),
-                    0
-                );
+                const totalMarks = obtainedTotal;
                 try {
                     await submitScriptMarks(scriptId, {
                         marksJson: JSON.stringify(finalQuestions),
@@ -690,6 +731,9 @@ export default function ValuationWindowPage() {
                 {/* LEFT PANEL: Score sheet */}
                 <ScoreSheet
                     questions={questions}
+                    markingScheme={markingScheme}
+                    consideredQuestionNumbers={consideredQuestionNumbers}
+                    sectionTotals={sectionTotals}
                     selectedQuestion={selectedQuestion}
                     onQuestionSelect={handleQuestionSelect}
                     maxTotal={maxTotal}

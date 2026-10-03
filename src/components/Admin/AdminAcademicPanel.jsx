@@ -83,11 +83,32 @@ export default function AdminAcademicPanel() {
         { length: curriculumProgram?.durationSemesters || 0 },
         (_, index) => String(index + 1),
     );
-    const [subjectForm, setSubjectForm] = useState({ curriculumId: "", subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "" });
+    const [subjectForm, setSubjectForm] = useState({ curriculumId: "", subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "", markingScheme: [] });
     const [subjectBusy, setSubjectBusy] = useState(false);
     const [subjectEditId, setSubjectEditId] = useState("");
     const [curriculumSubjects, setCurriculumSubjects] = useState([]);
     const [subjectsLoading, setSubjectsLoading] = useState(false);
+    const sectionMaximum = subjectForm.markingScheme.reduce((total, section) => total + (Number(section.maxMarks) || 0), 0);
+    const markingSchemeMatchesSubjectMax = Math.abs(sectionMaximum - Number(subjectForm.maxMarks)) < 0.000001;
+    const addMarkingSection = () => setSubjectForm((current) => ({
+        ...current,
+        markingScheme: [...current.markingScheme, {
+            name: `Section ${String.fromCharCode(65 + current.markingScheme.length)}`,
+            maxMarks: "1",
+            marksPerQuestion: "1",
+            questionCount: "1",
+        }],
+    }));
+    const updateMarkingSection = (index, updates) => setSubjectForm((current) => ({
+        ...current,
+        markingScheme: current.markingScheme.map((section, sectionIndex) =>
+            sectionIndex === index ? { ...section, ...updates } : section
+        ),
+    }));
+    const removeMarkingSection = (index) => setSubjectForm((current) => ({
+        ...current,
+        markingScheme: current.markingScheme.filter((_, sectionIndex) => sectionIndex !== index),
+    }));
     useEffect(() => {
         if (!subjectForm.curriculumId) {
             setCurriculumSubjects([]);
@@ -110,7 +131,12 @@ export default function AdminAcademicPanel() {
         } catch (err) { setError(err.message || "Failed to add syllabus."); } finally { setSyllabusBusy(false); }
     };
     const handleAddAcademicSubject = async (e) => {
-        e.preventDefault(); setSubjectBusy(true); setError("");
+        e.preventDefault(); setError("");
+        if (subjectForm.markingScheme.length > 0 && !markingSchemeMatchesSubjectMax) {
+            setError("Section maximum marks must add up to the subject maximum marks.");
+            return;
+        }
+        setSubjectBusy(true);
         try {
             const selectedCurriculum = curricula.find((curriculum) => curriculum.id === subjectForm.curriculumId);
             if (!selectedCurriculum) {
@@ -123,10 +149,16 @@ export default function AdminAcademicPanel() {
                 qpCode: subjectForm.qpCode,
                 maxMarks: Number(subjectForm.maxMarks) || 100,
                 credits: subjectForm.credits ? Number(subjectForm.credits) : null,
+                markingScheme: subjectForm.markingScheme.map((section) => ({
+                    name: section.name.trim(),
+                    maxMarks: Number(section.maxMarks),
+                    marksPerQuestion: Number(section.marksPerQuestion),
+                    questionCount: Number(section.questionCount),
+                })),
             };
             if (subjectEditId) await updateCurriculumSubject(subjectForm.curriculumId, subjectEditId, payload);
             else await createCurriculumSubject(subjectForm.curriculumId, payload);
-            setSubjectForm({ ...subjectForm, subjectCode: "", subjectName: "", qpCode: "", credits: "" });
+            setSubjectForm({ ...subjectForm, subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "", markingScheme: [] });
             setSubjectEditId("");
             await load();
             setCurriculumSubjects(await listCurriculumSubjects(subjectForm.curriculumId));
@@ -262,8 +294,50 @@ export default function AdminAcademicPanel() {
                     <input required placeholder="QP code" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.qpCode} onChange={(e) => setSubjectForm({ ...subjectForm, qpCode: e.target.value })} />
                     <input type="number" min="1" step="0.01" placeholder="Max marks" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.maxMarks} onChange={(e) => setSubjectForm({ ...subjectForm, maxMarks: e.target.value })} />
                     <input type="number" min="0" step="0.1" placeholder="Credits (optional)" className="font-lexend text-sm border p-2.5 rounded-sm outline-none" value={subjectForm.credits} onChange={(e) => setSubjectForm({ ...subjectForm, credits: e.target.value })} />
+                    <div className="col-span-full border rounded p-3 flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h4 className="font-lexend font-semibold text-sm">Question sections (optional)</h4>
+                                <p className="text-xs text-gray-500">Configure the offered questions and section cap. The evaluator score uses the highest-scoring questions up to the calculated count.</p>
+                            </div>
+                            <button type="button" onClick={addMarkingSection} className="border border-blue-500 bg-blue-50 px-3 py-2 rounded text-sm text-blue-800">ADD SECTION</button>
+                        </div>
+                        {subjectForm.markingScheme.map((section, index) => {
+                            const markValue = Number(section.marksPerQuestion);
+                            const maxValue = Number(section.maxMarks);
+                            const questionCount = Number(section.questionCount);
+                            const consideredCount = markValue > 0 && maxValue > 0
+                                ? Math.min(questionCount || 0, Math.ceil(maxValue / markValue))
+                                : 0;
+                            return (
+                                <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-end border-t pt-3">
+                                    <label className="text-xs text-gray-600">Section name
+                                        <input required value={section.name} onChange={(e) => updateMarkingSection(index, { name: e.target.value })} className="block w-full border p-2 rounded text-sm" />
+                                    </label>
+                                    <label className="text-xs text-gray-600">Section max marks
+                                        <input required type="number" min="0.01" step="0.01" value={section.maxMarks} onChange={(e) => updateMarkingSection(index, { maxMarks: e.target.value })} className="block w-full border p-2 rounded text-sm" />
+                                    </label>
+                                    <label className="text-xs text-gray-600">Marks per question
+                                        <input required type="number" min="0.01" step="0.01" value={section.marksPerQuestion} onChange={(e) => updateMarkingSection(index, { marksPerQuestion: e.target.value })} className="block w-full border p-2 rounded text-sm" />
+                                    </label>
+                                    <label className="text-xs text-gray-600">Questions offered
+                                        <input required type="number" min="1" step="1" value={section.questionCount} onChange={(e) => updateMarkingSection(index, { questionCount: e.target.value })} className="block w-full border p-2 rounded text-sm" />
+                                    </label>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="text-xs font-semibold text-blue-800">Consider best {consideredCount}</span>
+                                        <button type="button" onClick={() => removeMarkingSection(index)} className="text-xs text-red-700 underline">Remove</button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {subjectForm.markingScheme.length > 0 && (
+                            <p className={`text-xs font-semibold ${markingSchemeMatchesSubjectMax ? "text-green-700" : "text-red-600"}`}>
+                                Section marks total: {sectionMaximum} / subject maximum: {Number(subjectForm.maxMarks) || 0}
+                            </p>
+                        )}
+                    </div>
                     <button type="submit" disabled={subjectBusy} className="bg-blue-200 border border-blue-500 px-4 py-2.5 rounded-[0.3em] font-lexend font-medium text-sm disabled:opacity-60">{subjectBusy ? "SAVING..." : subjectEditId ? "UPDATE SUBJECT" : "ADD SUBJECT"}</button>
-                    {subjectEditId && <button type="button" onClick={() => { setSubjectEditId(""); setSubjectForm({ ...subjectForm, subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "" }); }} className="border px-4 py-2.5 rounded-sm text-sm">CANCEL</button>}
+                    {subjectEditId && <button type="button" onClick={() => { setSubjectEditId(""); setSubjectForm({ ...subjectForm, subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "", markingScheme: [] }); }} className="border px-4 py-2.5 rounded-sm text-sm">CANCEL</button>}
                 </form>
                 {subjectForm.curriculumId && (
                     <div className="overflow-x-auto">
@@ -288,7 +362,7 @@ export default function AdminAcademicPanel() {
                                         <td className="border p-2 font-mono">{subject.qpCode}</td>
                                         <td className="border p-2">{subject.maxMarks}</td>
                                         <td className="border p-2">{subject.credits ?? "-"}</td>
-                                        <td className="border p-2"><button type="button" onClick={() => { setSubjectEditId(subject.id); setSubjectForm({ curriculumId: subjectForm.curriculumId, subjectCode: subject.subjectCode, subjectName: subject.subjectName, qpCode: subject.qpCode, maxMarks: String(subject.maxMarks ?? 100), credits: subject.credits == null ? "" : String(subject.credits) }); }} className="inline-flex items-center gap-1 text-blue-700"><FiEdit /> Edit</button></td>
+                                        <td className="border p-2"><button type="button" onClick={() => { setSubjectEditId(subject.id); setSubjectForm({ curriculumId: subjectForm.curriculumId, subjectCode: subject.subjectCode, subjectName: subject.subjectName, qpCode: subject.qpCode, maxMarks: String(subject.maxMarks ?? 100), credits: subject.credits == null ? "" : String(subject.credits), markingScheme: (subject.markingScheme || []).map((section) => ({ ...section, maxMarks: String(section.maxMarks), marksPerQuestion: String(section.marksPerQuestion), questionCount: String(section.questionCount) })) }); }} className="inline-flex items-center gap-1 text-blue-700"><FiEdit /> Edit</button></td>
                                     </tr>
                                 ))}
                             </tbody>

@@ -6,6 +6,9 @@ export default function ScoreSheet({
     onQuestionSelect,
     maxTotal,
     obtainedTotal,
+    markingScheme = [],
+    consideredQuestionNumbers = new Set(),
+    sectionTotals = [],
 }) {
     return (
         <div className="w-[210px] shrink-0 bg-white border-r border-[#d0d4dc] flex flex-col shadow-sm z-10">
@@ -20,6 +23,7 @@ export default function ScoreSheet({
                     <thead>
                         <tr className="bg-[#fffbe0] sticky top-0 border-b border-[#e0dc90] text-[#665500] font-bold text-center z-10">
                             <th className="p-2 border-r border-[#e0dc90] text-[10px]">QNO</th>
+                            {markingScheme.length > 0 && <th className="p-1 border-r border-[#e0dc90] text-[9px]">SECTION</th>}
                             <th className="p-2 border-r border-[#e0dc90] text-[10px]">MAX</th>
                             <th className="p-2 text-[10px]">OBT</th>
                         </tr>
@@ -49,6 +53,14 @@ export default function ScoreSheet({
                                         )}
                                         {q.qno}
                                     </td>
+                                    {markingScheme.length > 0 && (
+                                        <td className="p-1 border-r border-gray-100 text-[9px] text-gray-500">
+                                            <div>{q.section}</div>
+                                            <div className={consideredQuestionNumbers.has(q.qno) ? "text-green-700" : "text-amber-700"}>
+                                                {consideredQuestionNumbers.has(q.qno) ? "COUNTED" : "OPTIONAL"}
+                                            </div>
+                                        </td>
+                                    )}
                                     <td className="p-2 text-gray-400 font-mono border-r border-gray-100 text-xs">
                                         {String(q.max).padStart(2, "0")}
                                     </td>
@@ -74,6 +86,12 @@ export default function ScoreSheet({
 
             {/* Totals */}
             <div className="border-t-2 border-[#d0d4dc] bg-emerald-50/40 shrink-0">
+                {sectionTotals.map((section) => (
+                    <div key={section.name} className="border-b border-[#d8ecc0] px-2 py-1 flex justify-between text-[10px] text-gray-600">
+                        <span>{section.name}</span>
+                        <span className="font-mono">{section.total} / {markingScheme.find((item) => item.name === section.name)?.maxMarks}</span>
+                    </div>
+                ))}
                 <div className="border-b border-[#d8ecc0] p-2 flex justify-between font-bold text-[#3a5a1a] text-xs">
                     <span>OBTAINED</span>
                     <span className="font-mono text-green-900">
