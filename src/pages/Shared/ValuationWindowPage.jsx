@@ -104,6 +104,7 @@ export default function ValuationWindowPage() {
     const [markingScheme, setMarkingScheme] = useState([]);
     const [selectedQuestion, setSelectedQuestion] = useState(DEFAULT_QUESTIONS[0]);
     const [isExporting, setIsExporting] = useState(false);
+    const [submissionPreviewOpen, setSubmissionPreviewOpen] = useState(false);
 
     // 1. Run Timer
     useEffect(() => {
@@ -511,18 +512,16 @@ export default function ValuationWindowPage() {
     };
 
     // 10. High resolution (2x) PDF export via jsPDF
-    const handleExportPdf = async () => {
+    const handleExportPdf = () => {
         if (!pdfDataRef.current) {
             alert("The scanned answer sheet hasn't finished loading yet.");
             return;
         }
+        setSubmissionPreviewOpen(true);
+    };
 
-        let summary = "Evaluation Summary Matrix:\n";
-        questions.forEach((q) => (summary += `Q${q.qno}: ${q.obt} / ${q.max}\n`));
-        if (!window.confirm(`${summary}\nGenerate annotated PDF and submit evaluation?`)) {
-            return;
-        }
-
+    const handleConfirmSubmission = async () => {
+        setSubmissionPreviewOpen(false);
         setIsExporting(true);
 
         try {
@@ -608,17 +607,6 @@ export default function ValuationWindowPage() {
                         ctx.lineWidth = 2.5 * scale;
                         ctx.stroke();
                         ctx.restore();
-                    } else if (ann.type === "mark") {
-                        ctx.save();
-                        const max = ann.max;
-                        const obt = ann.obt;
-                        const text = `[Q${ann.qno}: ${obt}/${max}]`;
-                        const isFull = parseFloat(obt) >= parseFloat(max);
-                        ctx.fillStyle = isFull ? "#28a050" : "#e03030";
-                        ctx.font = `bold ${13 * scale}px sans-serif`;
-                        ctx.textBaseline = "middle";
-                        ctx.fillText(text, cx, cy);
-                        ctx.restore();
                     } else if (ann.type === "text") {
                         ctx.save();
                         ctx.fillStyle = ann.color || "#e03030";
@@ -671,8 +659,7 @@ export default function ValuationWindowPage() {
             if (pdfDoc && scriptId) {
                 const blob = pdfDoc.output("blob");
                 try {
-                    // Save the corrected copy back to the same server-side location - never
-                    // downloaded to the evaluator's machine.
+                    // Save the corrected copy to its separate server-side QP folder.
                     await submitScriptFile(scriptId, blob);
                 } catch (fileErr) {
                     alert(`Failed to save the corrected PDF to the server: ${fileErr.message}`);
@@ -880,6 +867,89 @@ export default function ValuationWindowPage() {
                     }}
                     onClose={() => setContextMenu(null)}
                 />
+            )}
+
+            {submissionPreviewOpen && (
+                <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4" role="presentation">
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="submission-preview-title"
+                        className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-lg bg-white shadow-2xl"
+                    >
+                        <div className="border-b p-5">
+                            <h2 id="submission-preview-title" className="text-lg font-bold text-slate-900">
+                                Review marks before {reviewMode ? "approval" : "submission"}
+                            </h2>
+                            <p className="mt-1 text-sm text-slate-600">
+                                Check each question and the final total. You can go back and change any mark before confirming.
+                                Marks are stored in the evaluation record and are not printed on the answer-booklet PDF.
+                            </p>
+                        </div>
+                        <div className="p-5">
+                            <div className="mb-3 flex justify-between gap-4 text-sm">
+                                <span>Paper: <strong>{qpCode || "—"}</strong></span>
+                                <span>Questions: <strong>{questions.length}</strong></span>
+                            </div>
+                            <table className="w-full border-collapse text-sm">
+                                <thead>
+                                    <tr className="bg-slate-100 text-left">
+                                        <th className="border p-2">Question</th>
+                                        {markingScheme.length > 0 && <th className="border p-2">Section</th>}
+                                        <th className="border p-2 text-right">Awarded</th>
+                                        <th className="border p-2 text-right">Maximum</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {questions.map((question) => (
+                                        <tr key={question.qno}>
+                                            <td className="border p-2 font-semibold">Q{question.qno}</td>
+                                            {markingScheme.length > 0 && <td className="border p-2">{question.section}</td>}
+                                            <td className="border p-2 text-right">{question.obt === "NA" ? "0" : question.obt}</td>
+                                            <td className="border p-2 text-right">{question.max}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot>
+                                    {sectionTotals.map((section) => (
+                                        <tr key={section.name} className="bg-slate-50">
+                                            <td className="border p-2 font-semibold" colSpan={markingScheme.length > 0 ? 2 : 1}>
+                                                {section.name} total
+                                            </td>
+                                            <td className="border p-2 text-right">{section.total}</td>
+                                            <td className="border p-2 text-right">
+                                                {markingScheme.find((item) => item.name === section.name)?.maxMarks}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    <tr className="bg-emerald-50 font-bold">
+                                        <td className="border p-2" colSpan={markingScheme.length > 0 ? 2 : 1}>Final total</td>
+                                        <td className="border p-2 text-right">{obtainedTotal}</td>
+                                        <td className="border p-2 text-right">{maxTotal}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div className="flex justify-end gap-3 border-t p-4">
+                            <button
+                                type="button"
+                                disabled={isExporting}
+                                onClick={() => setSubmissionPreviewOpen(false)}
+                                className="rounded border px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                            >
+                                BACK TO MARKING
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isExporting}
+                                onClick={handleConfirmSubmission}
+                                className="rounded bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                            >
+                                {isExporting ? "SAVING..." : reviewMode ? "CONFIRM REVIEW" : "CONFIRM & SUBMIT"}
+                            </button>
+                        </div>
+                    </section>
+                </div>
             )}
         </div>
     );

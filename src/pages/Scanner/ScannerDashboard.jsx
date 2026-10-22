@@ -291,13 +291,21 @@ export default function ScannerDashboard() {
                             />
                         </div>
 
-                        <button
-                            onClick={() => setShowAddModal(true)}
-                            className="bg-blue-200 border border-blue-400 text-blue-900 px-3 py-2.5 rounded-[0.3em] font-lexend font-medium text-[0.9em] tracking-wide flex items-center gap-2 cursor-pointer hover:bg-blue-300 transition-colors"
-                        >
-                            <FiPlus size={17} />
-                            ADD SCRIPT
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => navigate("/scanner/qp-folders")}
+                                className="border border-indigo-400 bg-indigo-100 px-3 py-2.5 font-lexend text-[0.9em] font-medium tracking-wide text-indigo-900 hover:bg-indigo-200"
+                            >
+                                QP FOLDERS
+                            </button>
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="bg-blue-200 border border-blue-400 text-blue-900 px-3 py-2.5 rounded-[0.3em] font-lexend font-medium text-[0.9em] tracking-wide flex items-center gap-2 cursor-pointer hover:bg-blue-300 transition-colors"
+                            >
+                                <FiPlus size={17} />
+                                ADD SCRIPT
+                            </button>
+                        </div>
                     </div>
 
                     {viewError && (

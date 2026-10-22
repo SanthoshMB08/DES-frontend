@@ -16,6 +16,25 @@ export default function ScoreSheet({
             <div className="bg-[#f8f8f0] border-b border-[#ddd] p-2 text-[10px] font-extrabold text-gray-500 tracking-widest uppercase">
                 Score Sheet Matrix
             </div>
+            <div className="border-b bg-blue-50 p-2">
+                <label htmlFor="question-selector" className="block text-[9px] font-bold uppercase text-blue-800 mb-1">
+                    Marking toolbox · question
+                </label>
+                <select
+                    id="question-selector"
+                    aria-label="Select question number"
+                    value={selectedQuestion?.qno ?? ""}
+                    onChange={(event) => onQuestionSelect(questions.find((question) => question.qno === event.target.value) || null)}
+                    className="w-full rounded border border-blue-200 bg-white px-2 py-1.5 text-xs font-semibold text-slate-800"
+                >
+                    <option value="" disabled>Select question</option>
+                    {questions.map((question) => (
+                        <option key={question.qno} value={question.qno}>
+                            Q{question.qno} · max {question.max}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             {/* Table */}
             <div className="flex-1 overflow-y-auto">

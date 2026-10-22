@@ -7,8 +7,16 @@ export const listMyScannedScripts = () => api.get("/api/scanner/scripts");
 export const uploadScannedFile = (scriptId, file) => uploadFile(`/api/scanner/scripts/${scriptId}/file`, file, "POST");
 // Scanned PDF preview for the scanner.
 export const getScannerScriptFile = (scriptId) => getBlob(`/api/scanner/scripts/${scriptId}/file`);
+export const getScannerCorrectedScriptFile = (scriptId) => getBlob(`/api/scanner/scripts/${scriptId}/corrected-file`);
 // Lookup booklet details by answer booklet ID (auto-fills candidate info).
 export const lookupBooklet = (answerBookletId) => api.get(`/api/scanner/booklets/${answerBookletId}`);
+export const lookupScannerRegistrations = ({ usn, qpCode, examYearMonth }) => {
+    const params = new URLSearchParams({ usn, qpCode });
+    if (examYearMonth) params.set("examYearMonth", examYearMonth);
+    return api.get(`/api/scanner/registrations?${params.toString()}`);
+};
+export const submitScannedBooklet = ({ registrationId, bookletNumber, file }) =>
+    uploadFile("/api/scanner/booklets/submit", file, "POST", { registrationId, bookletNumber });
 
 // ---------- RE (Register of Evaluation) ----------
 export const createCourse = (payload) => api.post("/api/re/courses", payload);
@@ -24,6 +32,8 @@ export const getSubjectProgress = (subjectId) => api.get(`/api/re/subjects/${sub
 export const getMyCourse = () => api.get("/api/bo/course");
 // Status of every paper, grouped by subject, across the BO's whole course.
 export const listMyCourseSubjects = () => api.get("/api/bo/subjects");
+export const getBoeSubjectReport = (subjectId) => api.get(`/api/bo/subjects/${subjectId}/report`);
+export const getBoeSubjectReportExcel = (subjectId) => getBlob(`/api/bo/subjects/${subjectId}/report.xlsx`);
 export const assignChief = (subjectId, payload) => api.post(`/api/bo/subjects/${subjectId}/chief`, payload);
 export const completeSubject = (subjectId) => api.post(`/api/bo/subjects/${subjectId}/complete`);
 
@@ -52,7 +62,7 @@ export const toggleAvailability = () => api.post("/api/valuator/availability/tog
 export const getMyAvailability = () => api.get("/api/valuator/me");
 // Loads the scanned PDF straight into the evaluator's viewer - no manual upload needed.
 export const getValuatorScriptFile = (scriptId) => getBlob(`/api/valuator/scripts/${scriptId}/file`);
-// Uploads the corrected/annotated copy back, overwriting the same stored file (no local download).
+// Uploads the corrected/annotated copy to the separate QP correction folder.
 export const submitScriptFile = (scriptId, blob) => uploadFile(`/api/valuator/scripts/${scriptId}/file`, blob, "PUT");
 
 // ---------- REVIEWER ----------
@@ -68,6 +78,12 @@ export const getReviewerScriptFile = (scriptId) => getBlob(`/api/reviewer/script
 
 // ---------- ADMIN ----------
 export const getAdminDashboard = () => api.get("/api/admin/dashboard");
+
+// ---------- STAFF ----------
+export const getCorrectedPaper = (roleNumber, qpCode) => {
+    const params = new URLSearchParams({ roleNumber, qpCode });
+    return getBlob(`/api/staff/papers/corrected?${params.toString()}`);
+};
 
 // Admin can create/manage a user account for ANY role - RE, BO (BOE), Reviewer,
 // Valuator (Evaluator), Scanner, Invigilator - all through the same generic user API.

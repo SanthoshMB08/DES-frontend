@@ -1,0 +1,135 @@
+{
+  "planHash": "fea11c62ec3da74d55ea03f69375dcded88aab367a847d6591bd56f4e892049c",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-10-22T09:28:09.4583795Z",
+  "retryCount": 3,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 178572,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "frontend-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E onscreen-marking-frontend@0.0.0 build\r\n\u003E vite build\r\n\r\n\u001B[36mvite v7.3.5 \u001B[32mbuilding client environment for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[32m\u2713\u001B[39m 2701 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mmanifest.webmanifest                \u001B[39m\u001B[1m\u001B[2m    0.50 kB\u001B[22m\u001B[1m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                          \u001B[39m\u001B[1m\u001B[2m    1.08 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   0.56 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[32massets/pdf.worker.min-FHbmGBN0.mjs  \u001B[39m\u001B[1m\u001B[2m1,244.25 kB\u001B[22m\u001B[1m\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-Bjbrrn3q.css           \u001B[39m\u001B[1m\u001B[2m   49.86 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   9.97 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/purify.es-CC4Brkr_.js        \u001B[39m\u001B[1m\u001B[2m   27.95 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  10.57 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index.es-DM1ZU3NR.js         \u001B[39m\u001B[1m\u001B[2m  158.83 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  53.04 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/html2canvas.esm-DXEQVQnt.js  \u001B[39m\u001B[1m\u001B[2m  201.04 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  47.43 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/jspdf.es.min-DQueD1gV.js     \u001B[39m\u001B[1m\u001B[2m  386.21 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 126.40 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-Db3Z7sW3.js            \u001B[39m\u001B[1m\u001B[33m1,613.84 kB\u001B[39m\u001B[22m\u001B[2m \u2502 gzip: 466.27 kB\u001B[22m\r\n\u001B[33m\r\n(!) Some chunks are larger than 500 kB after minification. Consider:\r\n- Using dynamic import() to code-split the application\r\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\r\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001B[39m\r\n\u001B[32m\u2713 built in 22.54s\u001B[39m\r\n\r\nPWA v1.3.0\r\nmode      generateSW\r\nprecache  15 entries (2424.31 KiB)\r\nfiles generated\r\n  dist/sw.js\r\n  dist/workbox-9c191d2f.js\r\n",
+        "durationMs": 32201
+      },
+      {
+        "name": "frontend-lint",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E onscreen-marking-frontend@0.0.0 lint\r\n\u003E eslint .\r\n\r\n\r\nC:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3\\src\\pages\\Reviewer\\RevieweDashboard.jsx\r\n  69:8  warning  React Hook useEffect has a missing dependency: \u0027loadBundles\u0027. Either include it or remove the dependency array  react-hooks/exhaustive-deps\r\n\r\nC:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3\\src\\pages\\Scanner\\ScannerDashboard.jsx\r\n  75:8  warning  React Hook useEffect has a missing dependency: \u0027loadScripts\u0027. Either include it or remove the dependency array  react-hooks/exhaustive-deps\r\n\r\n\u2716 2 problems (0 errors, 2 warnings)\r\n\r\n",
+        "durationMs": 3681
+      },
+      {
+        "name": "tests-pass",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E onscreen-marking-frontend@0.0.0 test\r\n\u003E vitest run\r\n\r\n\r\n RUN  v5.0.5 C:/Users/santhosh.m.b/Downloads/project/frontend3\r\n\r\n\r\n Test Files  1 passed (1)\r\n      Tests  6 passed (6)\r\n   Start at  14:58:06\r\n   Duration  441ms (import 45%, transform 38%, worker 9%, tests 8%)\r\n\r\n",
+        "durationMs": 2451,
+        "testResults": {
+          "testFramework": "vitest",
+          "runnerDetectedFrom": "package_json",
+          "testsTotal": 6,
+          "testsPassed": 6,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": false
+        }
+      },
+      {
+        "name": "dev-server-serves-home",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\r\n\u003Chtml lang=\u0022en\u0022\u003E\r\n\r\n\u003Chead\u003E\n  \u003Cscript type=\u0022module\u0022\u003Eimport { injectIntoGlobalHook } from \u0022/@react-refresh\u0022;\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () =\u003E {};\nwindow.$RefreshSig$ = () =\u003E (type) =\u003E type;\u003C/script\u003E\n\n  \u003Cscript type=\u0022module\u0022 src=\u0022/@vite/client\u0022\u003E\u003C/script\u003E\n\r\n  \u003Cmeta charset=\u0022UTF-8\u0022 /\u003E\r\n  \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1.0\u0022 /\u003E\r\n  \u003Ctitle\u003EOnscreen Marking System\u003C/title\u003E\r\n  \r\n  \u003Cmeta name=\u0022description\u0022 content=\u0022AUTHOR : ANKITH KUMAR [ https://www.ankith.dev  |  https//www.github.com/ankith-00 ]\u0022 /\u003E\r\n\r\n  \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.googleapis.com\u0022 /\u003E\r\n  \u003Clink rel=\u0022preconnect\u0022 href=\u0022https://fonts.gstatic.com\u0022 crossorigin /\u003E\r\n  \u003Clink href=\u0022https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600\u0026display=swap\u0022 rel=\u0022stylesheet\u0022 /\u003E\r\n  \r\n\u003Clink rel=\u0022manifest\u0022 href=\u0022/manifest.webmanifest\u0022\u003E\u003C/head\u003E\r\n\r\n\u003Cbody\u003E\r\n  \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\r\n  \u003Cscript type=\u0022module\u0022 src=\u0022/src/main.jsx\u0022\u003E\u003C/script\u003E\r\n\u003Cscript id=\u0022vite-plugin-pwa:register-dev-sw\u0022 type=\u0022module\u0022\u003E\nimport registerDevSW from \u0027/@vite-plugin-pwa/pwa-entry-point-loaded\u0027;\nregisterDevSW();\n\u003C/script\u003E\n\u003C/body\u003E\r\n\r\n\u003C/html\u003E\n--- server output ---\n\r\n\u003E onscreen-marking-frontend@0.0.0 dev\r\n\u003E vite --host 127.0.0.1\r\n\r\n\r\n  \u001B[32m\u001B[1mVITE\u001B[22m v7.3.5\u001B[39m  \u001B[2mready in \u001B[0m\u001B[1m885\u001B[22m\u001B[2m\u001B[0m ms\u001B[22m\r\n\r\n  \u001B[32m\u279C\u001B[39m  \u001B[1mLocal\u001B[22m:   \u001B[36mhttp://127.0.0.1:\u001B[1m5173\u001B[22m/\u001B[39m\r\n",
+        "durationMs": 2087
+      }
+    ],
+    "executions": [
+      {
+        "source": "setup[0]",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "ci"
+        ],
+        "cwd": "C:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "frontend-build",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "C:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "frontend-lint",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "lint"
+        ],
+        "cwd": "C:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "tests-pass",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "C:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "dev-server-serves-home",
+        "resolvedExecutable": "C:\\nvm4w\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "dev",
+          "--",
+          "--host",
+          "127.0.0.1"
+        ],
+        "cwd": "C:\\Users\\santhosh.m.b\\Downloads\\project\\frontend3",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

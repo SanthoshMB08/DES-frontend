@@ -4,11 +4,14 @@ import { IoLockOpenOutline, IoAdd } from "react-icons/io5";
 import { SlGraph } from "react-icons/sl";
 import { IoIosLogOut } from "react-icons/io";
 import StatCard from "../../components/Shared/StatsCard";
+import BOEReportsTab from "./BOEReportsTab";
 
 import { getSession } from "../../api/client";
 import { logout as apiLogout, changePassword } from "../../api/auth";
 import ResetPasswordModal from "../../components/Shared/ResetPasswordModal";
-import { getMyCourse, listMyCourseSubjects, assignChief, completeSubject } from "../../api/valuation";
+import {
+    getMyCourse, listMyCourseSubjects, assignChief, completeSubject,
+} from "../../api/valuation";
 
 const emptyChiefForm = { username: "", password: "", fullName: "" };
 
@@ -33,6 +36,7 @@ export default function BOEDashboard() {
     const [chiefError, setChiefError] = useState("");
     const [completingSubjectId, setCompletingSubjectId] = useState(null);
     const [completionError, setCompletionError] = useState("");
+    const [activeTab, setActiveTab] = useState("dashboard");
 
     const loadAll = async () => {
         setLoading(true);
@@ -130,10 +134,21 @@ export default function BOEDashboard() {
                 </div>
 
                 <div className="flex-1 flex flex-col gap-2 mt-8">
-                    <div className="w-full font-lexend font-medium text-[0.85em] px-4 py-2.5 rounded-[0.3em] uppercase tracking-wide border flex items-center gap-3 bg-blue-600 border-blue-600 text-white">
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("dashboard")}
+                        className={`w-full text-left font-lexend font-medium text-[0.85em] px-4 py-2.5 rounded-[0.3em] uppercase tracking-wide border flex items-center gap-3 ${activeTab === "dashboard" ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-300 text-gray-700"}`}
+                    >
                         <SlGraph size={17} />
                         Dashboard
-                    </div>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab("reports")}
+                        className={`w-full text-left font-lexend font-medium text-[0.85em] px-4 py-2.5 rounded-[0.3em] uppercase tracking-wide border ${activeTab === "reports" ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-300 text-gray-700"}`}
+                    >
+                        Reports
+                    </button>
                 </div>
 
                 <button onClick={() => setShowResetModal(true)} className="w-full bg-indigo-100 border border-indigo-400 text-indigo-700 px-4 py-2.5 rounded-[0.3em] font-lexend font-medium text-[0.8em] flex items-center justify-between cursor-pointer hover:bg-indigo-200">
@@ -160,20 +175,21 @@ export default function BOEDashboard() {
                 )}
 
                 <div className="flex-1 p-4 flex flex-col gap-6 overflow-y-auto mt-[-1.5em]">
-                    <div className="flex items-center justify-between">
+                    {activeTab === "dashboard" && <div className="flex items-center justify-between">
                         <h2 className="text-lg font-lexend font-bold tracking-wide uppercase">
                             {course ? `${course.courseName} - Semester ${course.semester}` : "Dashboard"}
                         </h2>
-                    </div>
+                    </div>}
+                    {activeTab === "reports" && <BOEReportsTab subjects={subjects} />}
 
-                    <div className="grid grid-cols-3 gap-4">
+                    {activeTab === "dashboard" && <div className="grid grid-cols-3 gap-4">
                         {stats.map(stat => (
                             <StatCard key={stat.label} value={stat.value} label={stat.label} color={stat.color} />
                         ))}
-                    </div>
+                    </div>}
 
                     {/* SUBJECTS - status of every paper, per subject */}
-                    <div className="flex flex-col gap-3">
+                    {activeTab === "dashboard" && <div className="flex flex-col gap-3">
                         <h3 className="text-sm font-lexend font-bold tracking-wide uppercase text-gray-700">
                             Subjects &amp; Paper Status
                         </h3>
@@ -240,7 +256,7 @@ export default function BOEDashboard() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </div>}
                 </div>
             </div>
 

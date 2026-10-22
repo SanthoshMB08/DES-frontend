@@ -10,13 +10,16 @@ import ForcedPasswordChangePage from "./pages/Auth/ForcedPasswordChangePage";
 import ValuatorDashboard from "./pages/Valuator/ValuatorDashboard";
 import ReviewerDashboard from "./pages/Reviewer/RevieweDashboard";
 import ScannerDashboard from "./pages/Scanner/ScannerDashboard";
+import ScannerCapturePage from "./pages/Scanner/ScannerCapturePage";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import BOEDashboard from "./pages/BOE/BOEDashboardPage";
 import ChiefDashboard from "./pages/Chief/ChiefDashboard";
 import REDashboard from "./pages/RE/REDashboard";
 import MarksLookupPage from "./pages/Marks/MarksLookupPage";
 import ValuationWindowPage from "./pages/Shared/ValuationWindowPage";
-import InvigilatorMobilePage from "./pages/Invigilator/InvigilatorMobilePage";
+import HODImportDashboard from "./pages/HOD/HODImportDashboard";
+import ScannerQpFoldersDashboard from "./pages/Scanner/ScannerQpFoldersDashboard";
+import StaffPaperDashboard from "./pages/Staff/StaffPaperDashboard";
 
 import ProtectedRoute from "./utils/ProtectedRoute";
 
@@ -39,13 +42,16 @@ export default function App() {
 
         {/* ROLE DASHBOARDS */}
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/hod" element={<ProtectedRoute><HODImportDashboard /></ProtectedRoute>} />
         <Route path="/re" element={<ProtectedRoute><REDashboard /></ProtectedRoute>} />
         <Route path="/boe" element={<ProtectedRoute><BOEDashboard /></ProtectedRoute>} />
         <Route path="/chief" element={<ProtectedRoute><ChiefDashboard /></ProtectedRoute>} />
         <Route path="/reviewer" element={<ProtectedRoute><ReviewerDashboard /></ProtectedRoute>} />
-        <Route path="/scanner" element={<ProtectedRoute><ScannerDashboard /></ProtectedRoute>} />
+        <Route path="/scanner" element={<ProtectedRoute><ScannerCapturePage /></ProtectedRoute>} />
+        <Route path="/scanner/history" element={<ProtectedRoute><ScannerDashboard /></ProtectedRoute>} />
+        <Route path="/scanner/qp-folders" element={<ProtectedRoute><ScannerQpFoldersDashboard /></ProtectedRoute>} />
+        <Route path="/staff" element={<ProtectedRoute><StaffPaperDashboard /></ProtectedRoute>} />
         <Route path="/valuator" element={<ProtectedRoute><ValuatorDashboard /></ProtectedRoute>} />
-        <Route path="/invigilator" element={<ProtectedRoute><InvigilatorMobilePage /></ProtectedRoute>} />
 
         {/* PUBLIC - anyone can check marks, no login needed */}
         <Route path="/marks" element={<MarksLookupPage />} />

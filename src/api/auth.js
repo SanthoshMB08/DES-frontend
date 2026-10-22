@@ -3,14 +3,14 @@ import { api, saveSession, clearSession } from "./client";
 // Maps backend role names to frontend dashboard routes.
 export const ROLE_ROUTES = {
     ROLE_ADMIN: "/admin",
+    ROLE_HOD: "/hod",
     ROLE_RE: "/re",
     ROLE_BOE: "/boe",
     ROLE_CHIEF: "/chief",
     ROLE_REVIEWER: "/reviewer",
     ROLE_VALUATOR: "/valuator",
     ROLE_SCANNER: "/scanner",
-    ROLE_SUPPORT_STAFF: "/invigilator",
-    ROLE_INVIGILATOR: "/invigilator",
+    ROLE_STAFF: "/staff",
 };
 
 export function routeForRoles(roles = []) {

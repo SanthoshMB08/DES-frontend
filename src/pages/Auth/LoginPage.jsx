@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
 import { login, routeForRoles } from "../../api/auth";
+import { COLLEGE_NAME } from "../../config/branding";
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -49,6 +50,9 @@ export default function LoginPage() {
         // CONTAINER
         <div className="w-full h-screen flex items-center justify-center">
             <div className="w-3/12 flex flex-col">
+                <p className="font-lexend text-center text-sm font-medium text-gray-600 mb-3">
+                    {COLLEGE_NAME}
+                </p>
                 <h1 className="font-lexend font-bold text-2xl mb-2">
                     LOGIN
                 </h1>

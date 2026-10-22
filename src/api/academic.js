@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { uploadFile } from "./client";
 
 // ---------- Academic structure (Admin-managed master data) ----------
 export const createDepartment = (payload) => api.post("/api/admin/academic/departments", payload);
@@ -39,3 +40,8 @@ export const searchAdminStudents = (registerNumber) => {
     return api.get(`/api/admin/students${query}`);
 };
 export const listStudentsForBatch = (batchId) => api.get(`/api/admin/students/batch/${batchId}`);
+export const listHodImportBatches = () => api.get("/api/hod/batches");
+export const importHodStudentsExcel = (file, batchId) =>
+    uploadFile("/api/hod/students/import", file, "POST", { batchId });
+export const importHodExamRegistrationsExcel = (file) =>
+    uploadFile("/api/hod/exam-registrations/import", file);

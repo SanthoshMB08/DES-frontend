@@ -3,6 +3,13 @@ import React, { useState, useRef, useEffect } from "react";
 export default function MarkInputPopup({ question, clientX, clientY, onConfirm, onCancel }) {
     const [value, setValue] = useState("");
     const inputRef = useRef(null);
+    const markOptions = [];
+    for (let mark = 0; mark <= Number(question.max); mark += 0.5) {
+        markOptions.push(Number(mark.toFixed(2)));
+    }
+    if (markOptions.at(-1) !== Number(question.max)) {
+        markOptions.push(Number(question.max));
+    }
 
     useEffect(() => {
         // Small delay to let the popup mount before focusing
@@ -58,13 +65,10 @@ export default function MarkInputPopup({ question, clientX, clientY, onConfirm, 
 
                 {/* Input row */}
                 <div className="bg-white p-3 flex items-center gap-2">
-                    <input
+                    <select
                         ref={inputRef}
                         id="mark-value-input"
-                        type="number"
-                        min="0"
-                        max={question.max}
-                        step="0.5"
+                        aria-label={`Marks for question ${question.qno}`}
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         onKeyDown={(e) => {
@@ -72,9 +76,11 @@ export default function MarkInputPopup({ question, clientX, clientY, onConfirm, 
                             if (e.key === "Escape") onCancel();
                             e.stopPropagation();
                         }}
-                        placeholder="0"
-                        className="w-[64px] text-center text-xl font-black bg-gray-50 border-2 border-blue-300 rounded-lg p-1 outline-none focus:border-blue-600 transition-colors font-mono"
-                    />
+                        className="w-[86px] text-center text-lg font-black bg-gray-50 border-2 border-blue-300 rounded-lg p-1 outline-none focus:border-blue-600 transition-colors font-mono"
+                    >
+                        <option value="">Marks</option>
+                        {markOptions.map((mark) => <option key={mark} value={mark}>{mark}</option>)}
+                    </select>
                     <span className="text-gray-400 font-bold text-sm">/ {question.max}</span>
                     <div className="flex gap-1.5 ml-auto">
                         <button

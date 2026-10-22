@@ -101,13 +101,16 @@ export async function getBlob(path) {
 
 // For endpoints that accept a multipart file upload. Don't set Content-Type manually -
 // the browser needs to add its own multipart boundary.
-export async function uploadFile(path, file, method = "POST") {
+export async function uploadFile(path, file, method = "POST", fields = {}) {
     const headers = {};
     const token = getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const formData = new FormData();
     formData.append("file", file, file.name || "answer-sheet.pdf");
+    Object.entries(fields).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) formData.append(key, String(value));
+    });
 
     let response;
     try {

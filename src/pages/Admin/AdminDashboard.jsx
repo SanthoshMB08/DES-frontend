@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoSettingsOutline, IoBookmarkOutline } from "react-icons/io5";
 import { SlGraph } from "react-icons/sl";
-import { FiBook, FiUsers, FiLayers, FiUpload } from "react-icons/fi";
+import { FiBook, FiUsers, FiLayers } from "react-icons/fi";
 import { IoIosLogOut } from "react-icons/io";
 
 
@@ -10,12 +10,12 @@ import { IoIosLogOut } from "react-icons/io";
 import QpCodesTable from "../../components/Admin/AdminQPCodeTable";
 import AnswerBookletsTable from "../../components/Shared/AnswerBookletTable";
 import StatCard from "../../components/Shared/StatsCard";
+import { COLLEGE_NAME } from "../../config/branding";
 import TrendChart from "../../components/Shared/TrendChart";
 import AdminUsersTable from "../../components/Admin/AdminUsersTable";
 import AddUserModal from "../../components/Admin/AddUserModal";
 import TempPasswordModal from "../../components/Admin/TempPasswordModal";
 import AdminAcademicPanel from "../../components/Admin/AdminAcademicPanel";
-import AdminHallTicketImportPanel from "../../components/Admin/AdminHallTicketImportPanel";
 
 import { getSession } from "../../api/client";
 import { logout as apiLogout, changePassword } from "../../api/auth";
@@ -46,10 +46,6 @@ export default function AdminDashboard() {
         id: session?.username?.toUpperCase() || "ADMIN",
         name: session?.username || "Administrator",
         role: "ADMIN"
-    };
-
-    const collegeInfo = {
-        name: "MS Ramchandra College of Engineering"
     };
 
     const [activeTab, setActiveTab] = useState("dashboard");
@@ -94,9 +90,9 @@ export default function AdminDashboard() {
     // Real, backend-driven stats (falls back to 0 while loading).
     const stats = [
         { label: "Total Users", value: dashboardData?.totalUsers ?? 0, color: "blue" },
-        { label: "Hall Tickets Scanned", value: dashboardData?.totalHallTicketsScanned ?? 0, color: "purple" },
-        { label: "Booklets Assigned", value: dashboardData?.totalBookletsAssigned ?? 0, color: "green" },
-        { label: "Absent Students", value: dashboardData?.totalAbsentStudents ?? 0, color: "yellow" },
+        { label: "Students", value: dashboardData?.totalStudents ?? 0, color: "purple" },
+        { label: "Exam Registrations", value: dashboardData?.totalExamRegistrations ?? 0, color: "green" },
+        { label: "Booklets", value: dashboardData?.totalBooklets ?? 0, color: "yellow" },
     ];
 
     const handleLogout = () => {
@@ -268,7 +264,6 @@ export default function AdminDashboard() {
     const tabs = [
         { key: "dashboard", label: "Dashboard", icon: SlGraph },
         { key: "academic", label: "Academic Setup", icon: FiLayers },
-        { key: "hallticketimport", label: "Hall Tickets", icon: FiUpload },
         { key: "qpcodes", label: "QP-Codes", icon: IoBookmarkOutline },
         { key: "booklets", label: "Booklets", icon: FiBook },
         { key: "users", label: "Users", icon: FiUsers },
@@ -319,7 +314,7 @@ export default function AdminDashboard() {
                 {/* HEADER */}
                 <div className="w-full p-4 flex justify-between items-center border-b border-gray-200 ml-[-0.2em]">
                     <div className="font-lexend text-[1em] font-medium tracking-wide">
-                        {collegeInfo.name}
+                        {COLLEGE_NAME}
                     </div>
                     <button onClick={handleLogout} className="bg-red-300 border border-red-500 px-6 py-2.5 rounded-[0.3em] font-lexend font-medium text-sm flex items-center gap-4 tracking-wide cursor-pointer">
                         <IoIosLogOut size={20} />
@@ -354,7 +349,6 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === "academic" && <AdminAcademicPanel />}
-                {activeTab === "hallticketimport" && <AdminHallTicketImportPanel />}
                 {subjectError && activeTab === "qpcodes" && <p className="px-6 text-sm text-red-600">{subjectError}</p>}
                 {activeTab === "qpcodes" && <QpCodesTable qpCodes={qpCodes} onAddQpCode={handleAddQpCode} />}
                 {activeTab === "booklets" && <AnswerBookletsTable answerBooklets={answerBooklets} />}

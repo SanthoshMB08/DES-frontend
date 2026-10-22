@@ -9,7 +9,8 @@ const CREATABLE_ROLES = [
     { name: "ROLE_REVIEWER", label: "Reviewer" },
     { name: "ROLE_VALUATOR", label: "Valuator (Evaluator)" },
     { name: "ROLE_SCANNER", label: "Scanner" },
-    { name: "ROLE_INVIGILATOR", label: "Invigilator" },
+    { name: "ROLE_STAFF", label: "Staff (Corrected Paper Downloads)" },
+    { name: "ROLE_HOD", label: "HOD (Head of Department)" },
 ];
 
 const initialForm = {

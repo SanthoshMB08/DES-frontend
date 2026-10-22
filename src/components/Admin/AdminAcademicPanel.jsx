@@ -3,7 +3,7 @@ import { FiEdit, FiPlus } from "react-icons/fi";
 import {
     createDepartment, listDepartments,
     updateDepartment, createProgram, updateProgram, listPrograms,
-    listBatches, createStandaloneSyllabus, updateSyllabus, listSyllabi, createCurriculum, updateCurriculum, listCurricula, createCurriculumSubject, updateCurriculumSubject, listCurriculumSubjects,
+    listBatches, createBatch, createStandaloneSyllabus, updateSyllabus, listSyllabi, createCurriculum, updateCurriculum, listCurricula, createCurriculumSubject, updateCurriculumSubject, listCurriculumSubjects,
     upsertStudent, searchAdminStudents,
 } from "../../api/academic";
 
@@ -40,11 +40,13 @@ export default function AdminAcademicPanel() {
         setDeptBusy(true);
         setError("");
         try {
-            if (departmentEditId) await updateDepartment(departmentEditId, deptForm);
-            else await createDepartment(deptForm);
+            const savedDepartment = departmentEditId
+                ? await updateDepartment(departmentEditId, deptForm)
+                : await createDepartment(deptForm);
+            setDepartments((current) => [...current.filter((item) => item.id !== savedDepartment.id), savedDepartment]
+                .sort((left, right) => left.name.localeCompare(right.name)));
             setDeptForm({ name: "", code: "" });
             setDepartmentEditId("");
-            await load();
         } catch (err) { setError(err.message || "Failed to add department."); }
         finally { setDeptBusy(false); }
     };
@@ -53,6 +55,8 @@ export default function AdminAcademicPanel() {
     const [progForm, setProgForm] = useState({ name: "", code: "", departmentId: "", durationSemesters: "6" });
     const [progBusy, setProgBusy] = useState(false);
     const [programEditId, setProgramEditId] = useState("");
+    const [batchForm, setBatchForm] = useState({ programId: "", admissionYear: "", label: "" });
+    const [batchBusy, setBatchBusy] = useState(false);
     const handleAddProgram = async (e) => {
         e.preventDefault();
         setProgBusy(true);
@@ -63,13 +67,39 @@ export default function AdminAcademicPanel() {
                 departmentId: progForm.departmentId || null,
                 durationSemesters: Number(progForm.durationSemesters) || 6,
             };
-            if (programEditId) await updateProgram(programEditId, payload);
-            else await createProgram(payload);
+            const savedProgram = programEditId
+                ? await updateProgram(programEditId, payload)
+                : await createProgram(payload);
+            const previousProgram = programs.find((item) => item.id === savedProgram.id);
+            setDepartments((current) => current.map((department) => {
+                const previousDepartmentId = previousProgram?.departmentId;
+                const nextDepartmentId = savedProgram.departmentId;
+                if (previousDepartmentId === nextDepartmentId
+                    || (department.id !== previousDepartmentId && department.id !== nextDepartmentId)) {
+                    return department;
+                }
+                const countChange = department.id === nextDepartmentId ? 1 : -1;
+                return { ...department, programCount: Math.max(0, department.programCount + countChange) };
+            }));
+            setPrograms((current) => [...current.filter((item) => item.id !== savedProgram.id), savedProgram]
+                .sort((left, right) => left.name.localeCompare(right.name)));
             setProgForm({ name: "", code: "", departmentId: "", durationSemesters: "6" });
             setProgramEditId("");
-            await load();
         } catch (err) { setError(err.message || "Failed to add program."); }
         finally { setProgBusy(false); }
+    };
+    const handleAddBatch = async (e) => {
+        e.preventDefault();
+        setBatchBusy(true);
+        setError("");
+        try {
+            const { programId, ...payload } = batchForm;
+            const savedBatch = await createBatch(programId, payload);
+            setBatches((current) => [...current.filter((item) => item.id !== savedBatch.id), savedBatch]
+                .sort((left, right) => right.admissionYear.localeCompare(left.admissionYear)));
+            setBatchForm({ programId: "", admissionYear: "", label: "" });
+        } catch (err) { setError(err.message || "Failed to add course batch."); }
+        finally { setBatchBusy(false); }
     };
 
     const [syllabusForm, setSyllabusForm] = useState({ name: "", year: "" });
@@ -124,9 +154,12 @@ export default function AdminAcademicPanel() {
     const handleAddSyllabus = async (e) => {
         e.preventDefault(); setSyllabusBusy(true); setError("");
         try {
-            if (syllabusEditId) await updateSyllabus(syllabusEditId, syllabusForm);
-            else await createStandaloneSyllabus(syllabusForm);
-            setSyllabusForm({ name: "", year: "" }); setSyllabusEditId(""); await load();
+            const savedSyllabus = syllabusEditId
+                ? await updateSyllabus(syllabusEditId, syllabusForm)
+                : await createStandaloneSyllabus(syllabusForm);
+            setSyllabi((current) => [...current.filter((item) => item.id !== savedSyllabus.id), savedSyllabus]
+                .sort((left, right) => right.year.localeCompare(left.year)));
+            setSyllabusForm({ name: "", year: "" }); setSyllabusEditId("");
         } catch (err) { setError(err.message || "Failed to add syllabus."); } finally { setSyllabusBusy(false); }
     };
     const handleAddAcademicSubject = async (e) => {
@@ -153,22 +186,35 @@ export default function AdminAcademicPanel() {
                     questionCount: Number(section.questionCount),
                 })),
             };
-            if (subjectEditId) await updateCurriculumSubject(subjectForm.curriculumId, subjectEditId, payload);
-            else await createCurriculumSubject(subjectForm.curriculumId, payload);
+            const editingSubject = Boolean(subjectEditId);
+            const savedSubject = editingSubject
+                ? await updateCurriculumSubject(subjectForm.curriculumId, subjectEditId, payload)
+                : await createCurriculumSubject(subjectForm.curriculumId, payload);
+            setCurriculumSubjects((current) => [...current.filter((item) => item.id !== savedSubject.id), savedSubject]
+                .sort((left, right) => left.subjectCode.localeCompare(right.subjectCode)));
+            if (!editingSubject) {
+                setCurricula((current) => current.map((item) => item.id === subjectForm.curriculumId
+                    ? { ...item, subjectCount: item.subjectCount + 1 }
+                    : item));
+            }
             setSubjectForm({ ...subjectForm, subjectCode: "", subjectName: "", qpCode: "", maxMarks: "100", credits: "", markingScheme: [] });
             setSubjectEditId("");
-            await load();
-            setCurriculumSubjects(await listCurriculumSubjects(subjectForm.curriculumId));
         } catch (err) { setError(err.message || "Failed to add academic subject."); } finally { setSubjectBusy(false); }
     };
     const handleAddCurriculum = async (e) => {
         e.preventDefault(); setError(""); setCurriculumBusy(true);
         try {
-            if (curriculumEditId) await updateCurriculum(curriculumEditId, curriculumForm);
-            else await createCurriculum(curriculumForm);
+            const savedCurriculum = curriculumEditId
+                ? await updateCurriculum(curriculumEditId, curriculumForm)
+                : await createCurriculum(curriculumForm);
+            setCurricula((current) => {
+                const existing = current.some((item) => item.id === savedCurriculum.id);
+                return existing
+                    ? current.map((item) => item.id === savedCurriculum.id ? savedCurriculum : item)
+                    : [savedCurriculum, ...current];
+            });
             setCurriculumForm({ programId: "", syllabusId: "", semester: "" });
             setCurriculumEditId("");
-            await load();
         } catch (err) { setError(err.message || "Failed to add curriculum."); }
         finally { setCurriculumBusy(false); }
     };
@@ -250,6 +296,33 @@ export default function AdminAcademicPanel() {
                     <tbody>
                         {!loading && programs.length === 0 && <tr><td colSpan={5} className="border p-2 text-center text-gray-500">No programs yet.</td></tr>}
                         {programs.map(p => <tr key={p.id}><td className="border p-2">{p.name}</td><td className="border p-2 font-mono">{p.code}</td><td className="border p-2">{p.departmentName || "-"}</td><td className="border p-2">{p.durationSemesters} sem</td><td className="border p-2"><button type="button" onClick={() => { setProgramEditId(p.id); setProgForm({ name: p.name, code: p.code, departmentId: p.departmentId || "", durationSemesters: String(p.durationSemesters) }); }} className="inline-flex items-center gap-1 text-blue-700"><FiEdit /> Edit</button></td></tr>)}
+                    </tbody>
+                </table>
+            </section>
+
+            {/* BATCH */}
+            <section className="flex flex-col gap-3">
+                <h3 className="font-lexend font-semibold text-sm uppercase text-gray-700">Course batches</h3>
+                <form onSubmit={handleAddBatch} className="flex gap-3 items-end flex-wrap">
+                    <select required aria-label="Program for batch" className="font-lexend text-sm border p-2.5 rounded-sm outline-none"
+                        value={batchForm.programId} onChange={(e) => setBatchForm({ ...batchForm, programId: e.target.value })}>
+                        <option value="">Select program</option>
+                        {programs.map((program) => <option key={program.id} value={program.id}>{program.name}</option>)}
+                    </select>
+                    <input required maxLength={9} placeholder="Admission year (e.g. 2026)" className="font-lexend text-sm border p-2.5 rounded-sm outline-none w-48"
+                        value={batchForm.admissionYear} onChange={(e) => setBatchForm({ ...batchForm, admissionYear: e.target.value })} />
+                    <input maxLength={100} placeholder="Batch label (optional)" className="font-lexend text-sm border p-2.5 rounded-sm outline-none flex-1 min-w-48"
+                        value={batchForm.label} onChange={(e) => setBatchForm({ ...batchForm, label: e.target.value })} />
+                    <button type="submit" disabled={batchBusy || programs.length === 0} className="flex items-center gap-1.5 bg-blue-200 border border-blue-500 px-4 py-2.5 rounded-[0.3em] font-lexend font-medium text-sm cursor-pointer hover:bg-blue-300 disabled:opacity-60">
+                        {batchBusy ? "SAVING..." : <><FiPlus size={15} /> ADD BATCH</>}
+                    </button>
+                </form>
+                {programs.length === 0 && !loading && <p className="font-lexend text-sm text-amber-700">Add a program before creating a batch.</p>}
+                <table className="w-full border-collapse text-sm">
+                    <thead><tr className="bg-gray-100 text-left"><th className="border p-2">Batch</th><th className="border p-2">Program</th><th className="border p-2">Admission year</th></tr></thead>
+                    <tbody>
+                        {!loading && batches.length === 0 && <tr><td colSpan={3} className="border p-2 text-center text-gray-500">No course batches yet. Create one to enable HOD student imports.</td></tr>}
+                        {batches.map((batch) => <tr key={batch.id}><td className="border p-2">{batch.label}</td><td className="border p-2">{batch.programName}</td><td className="border p-2">{batch.admissionYear}</td></tr>)}
                     </tbody>
                 </table>
             </section>
