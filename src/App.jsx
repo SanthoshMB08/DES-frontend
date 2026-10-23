@@ -1,4 +1,4 @@
-// AUTHOR : ANKITH KUMAR [ https://www.ankith.dev  |  https//www.github.com/ankith-00 ]
+// AUTHORS: Ankith Kumar (https://github.com/ankith-00) · Santhosh M (https://github.com/SanthoshMB08)
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -60,7 +60,7 @@ export default function App() {
         <Route path="/valuation" element={<ProtectedRoute><ValuationWindowPage /></ProtectedRoute>} />
 
       </Routes>
-      <div className="project-watermark" aria-hidden="true">DIGITAL EVALUATION SYSTEM · PROJECT TEAM</div>
+      <div className="project-watermark" aria-hidden="true">DIGITAL EVALUATION SYSTEM · 64 BITS</div>
     </BrowserRouter>
   );
 }

@@ -1,4 +1,4 @@
-// AUTHOR : ANKITH KUMAR [ https://www.ankith.dev  |  https//www.github.com/ankith-00 ]
+// AUTHORS: Ankith Kumar (https://github.com/ankith-00) · Santhosh M (https://github.com/SanthoshMB08)
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
