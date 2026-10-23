@@ -91,6 +91,7 @@ export default function ScannerCapturePage() {
     const [logoutVisible, setLogoutVisible] = useState(false);
     const pageCodeRef = useRef({ value: null, time: 0 });
     const pageUrlsRef = useRef(new Set());
+    const automaticAdvanceRef = useRef(false);
 
     const nextPageNumber = useMemo(() => {
         if (replacePage) return replacePage;
@@ -114,6 +115,10 @@ export default function ScannerCapturePage() {
         pageUrlsRef.current.forEach((imageUrl) => URL.revokeObjectURL(imageUrl));
     }, []);
 
+    useEffect(() => {
+        automaticAdvanceRef.current = false;
+    }, [step]);
+
     const findRegistrations = useCallback(async (formIdentity) => {
         setLoading(true);
         setError("");
@@ -132,29 +137,47 @@ export default function ScannerCapturePage() {
             } else {
                 setMessage("");
             }
+            return available;
         } catch (requestError) {
             setError(requestError.message || "Could not look up the exam registration.");
+            return null;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    const handleDecode = useCallback((decodedText, decodedResult) => {
+    const handleDecode = useCallback(async (decodedText, decodedResult) => {
         const text = String(decodedText || "").trim();
         const format = decodedResult?.result?.format?.format;
         if (step === "identity" && format === 0) {
             const parsed = parseIdentityQr(text);
-            if (!parsed || text === identityRaw) return;
+            if (!parsed || text === identityRaw || automaticAdvanceRef.current) return;
+            automaticAdvanceRef.current = true;
             setIdentity(parsed);
             setIdentityRaw(text);
             setMessage("Hall-ticket QR read. Checking matching exam registrations…");
-            findRegistrations(parsed);
+            const available = await findRegistrations(parsed);
+            if (available?.length === 1) {
+                setRegistrationId(available[0].id);
+                setError("");
+                setMessage("Hall-ticket QR verified. Now scan the booklet barcode.");
+                setStep("booklet");
+            } else {
+                automaticAdvanceRef.current = false;
+            }
             return;
         }
         if (step === "booklet") {
-            if (format === 0 || !text || text === identityRaw) return;
-            setBookletNumber(normalizeBookletNumber(text));
-            setMessage("Booklet barcode read. Confirm the number below.");
+            if (format === 0 || !text || text === identityRaw || automaticAdvanceRef.current || !registrationId) return;
+            const scannedBookletNumber = normalizeBookletNumber(text);
+            if (!scannedBookletNumber) return;
+            automaticAdvanceRef.current = true;
+            setBookletNumber(scannedBookletNumber);
+            setError("");
+            setMessage("Booklet barcode read. Now scan the QR on page 1.");
+            setDetectedPage(null);
+            pageCodeRef.current = { value: null, time: 0 };
+            setStep("pages");
             return;
         }
         if (step === "pages" && format === 0) {
@@ -171,7 +194,7 @@ export default function ScannerCapturePage() {
                 }
             }
         }
-    }, [step, identityRaw, findRegistrations, nextPageNumber]);
+    }, [step, identityRaw, findRegistrations, nextPageNumber, registrationId]);
 
     const continueToBooklet = () => {
         setError("");

@@ -34,7 +34,14 @@ export default function CameraFeed({ onDecode, active }) {
             try {
                 await scanner.start(
                     { facingMode: "environment" },
-                    { fps: 10, disableFlip: false },
+                    {
+                        fps: 10,
+                        disableFlip: false,
+                        qrbox: (viewfinderWidth, viewfinderHeight) => ({
+                            width: Math.min(Math.round(viewfinderWidth * 0.9), 420),
+                            height: Math.min(Math.round(viewfinderHeight * 0.78), 560),
+                        }),
+                    },
                     (decodedText, result) => callbackRef.current?.(decodedText, result),
                     () => {},
                 );
@@ -74,7 +81,7 @@ export default function CameraFeed({ onDecode, active }) {
                     {cameraError}
                 </div>
             )}
-            <div id={elementId.current} className="min-h-56 w-full overflow-hidden rounded-xl bg-slate-950" />
+            <div id={elementId.current} className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-slate-950 [&_video]:h-full [&_video]:w-full [&_video]:object-cover" />
         </div>
     );
 }
